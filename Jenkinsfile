@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         // 기본 설정
-        IMAGE_REPO_URL    = "27.96.145.28:30500"
-        ARGOCD_URL        = "27.96.145.28:30938"
+        IMAGE_REPO_URL    = "${SERVER_PUBLIC_IP}:30500"
+        ARGOCD_URL        = "${SERVER_PUBLIC_IP}:30082"
         DEPLOY_PATH       = "${DEPLOY_APP_NAME}/cicd/k8s"
 
         // 파생 변수
