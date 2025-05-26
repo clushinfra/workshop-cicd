@@ -39,6 +39,7 @@ pipeline {
                     cat <<EOF > Dockerfile
 FROM ${DOCKER_BASE_IMAGE}
 RUN mkdir -p /usr/local/nginx/html
+COPY workshop.png /usr/local/nginx/html/
 COPY workshop.html /usr/local/nginx/html/index.html
 RUN chmod -R 755 /usr/local/nginx/html
 EXPOSE ${DOCKER_DEPLOY_PORT}
