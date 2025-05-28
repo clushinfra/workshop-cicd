@@ -44,17 +44,17 @@ curl -o ncp-iam-authenticator -L https://github.com/NaverCloudPlatform/ncp-iam-a
 ```bash
 chmod +x ./ncp-iam-authenticator
 ```
-- 환경 변수 추가
+- $HOME/bin/ncp-iam-authenticator를 생성하고 PATH에 추가
+```bash
+mkdir -p $HOME/bin && cp ./ncp-iam-authenticator $HOME/bin/ncp-iam-authenticator && export PATH=$PATH:$HOME/bin
+```
+- Shell Profile에 PATH 추가
 ```bash
 echo 'export PATH=$PATH:$HOME/bin' >> ~/.bash_profile
 ```
 - 상태 확인
 ```bash
 ncp-iam-authenticator help
-```
-- 출력 결과
-```bash
-
 ```
 
 ### 2) IAM 인증 kubeconfig 생성
@@ -142,6 +142,18 @@ volumeBindingMode: WaitForFirstConsumer    # 실제로 Pod가 만들어져야 �
 k apply -f sc.yaml
 ```
 
+```bash
+k get sc
+```
+
+```bash
+root@ehyang-w-3c0c:~/manifest/jenkins# k get sc
+NAME                          PROVISIONER          RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+jenkins-sc                    blk.csi.ncloud.com   Retain          WaitForFirstConsumer   false                  26s
+nks-block-storage (default)   blk.csi.ncloud.com   Delete          WaitForFirstConsumer   true                   16h
+nks-nas-csi                   nas.csi.ncloud.com   Delete          WaitForFirstConsumer   true                   16h
+```
+
 ### 2) PersistentVolumeClaim 생성
 **PersistentVolumeClaim이란?**
 
@@ -170,6 +182,12 @@ spec:
 
 ```bash
 k apply -f pvc.yaml
+```
+
+```bash
+root@ehyang-w-3c0c:~/manifest/jenkins# k get pvc -n jenkins
+NAME          STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+jenkins-pvc   Pending                                      jenkins-sc     <unset>                 18s
 ```
 
 ### 3) Deployment 생성
@@ -234,6 +252,12 @@ spec:
 k apply -f deploy.yaml
 ```
 
+```bash
+root@ehyang-w-3c0c:~/manifest/jenkins# k get deploy -n jenkins
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+jenkins   0/1     1            0           28s
+```
+
 ### 4) Service 생성
 **Service**란?
 
@@ -271,6 +295,13 @@ k apply -f svc.yaml
 ### 5) Jenkins 접속
 
 http://[서버공인IP]:30080/
+
+초기비밀번호 위치
+/var/jenkins_home/secrets/initialAdminPassword
+
+```bash
+cat /var/jenkins_home/secrets/initialAdminPassword
+```
 
 ID : admin
 
