@@ -1,66 +1,108 @@
 # workshop-cicd
 2025.05.31 쿠버네티스 워크샵
 
-## 0. 진행 과정
+## CI/CD 실습 진행 순서
 ![cicd 아키텍처](./images/cicd-architecture.png)
 
-이번 워크샵에서는 GitHub에 올라온 코드를 기반으로, 
+이번 워크샵에서는 
+
+GitHub에 올라온 코드를 기반으로, 
 
 Jenkins가 코드를 가져와 애플리케이션을 빌드하고, 
 
 빌드한 이미지를 Nexus에 저장한 다음, 
 
-ArgoCD가 그 이미지를 감지해서 Kubernetes 클러스터에 자동 배포하는 전체 과정을 실습 해보겠습니다.
+ArgoCD가 그 이미지를 감지해서 Kubernetes 클러스터에 자동 배포하는 
 
+CI/CD 과정을 실습 해보겠습니다.
 
+## 0. CI/CD란?
 
-## 1. GitOps CI/CD 파이프라인 구축
-### 1) 
+### CI란? (지속적 통합, Continuous Integration)
+코드를 병합한 뒤, 자동으로 테스트하고 애플리케이션을 빌드하는 과정입니다.
 
+### CD란? (지속적 배포, Continuous Delivery/Deployment)
+빌드된 애플리케이션 이미지를 서버에 자동으로 배포하는 과정입니다.
 
+---
 
+개발자가 코드를 변경하고, Jenkins에서 빌드를 실행하면,
 
+그 코드가 자동으로 테스트되고, 이미지로 만들어져 서버에 배포되는 일련의 자동화 과정입니다.
 
-2025-05-23 정리
+---
 
-현재 생성 서버
+## 1. NKS Authentication 등록
 
-ssh [root@27.96.145.28](mailto:root@27.96.145.28)
+### 1) ncp-iam-authenticator 설치
 
+- ncp-iam-authenticator 다운로드
+```bash
+curl -o ncp-iam-authenticator -L https://github.com/NaverCloudPlatform/ncp-iam-authenticator/releases/latest/download/ncp-iam-authenticator_linux_amd64
+```
+- 바이너리 실행 권한 추가
+```bash
+chmod +x ./ncp-iam-authenticator
+```
+- 환경 변수 추가
+```bash
+echo 'export PATH=$PATH:$HOME/bin' >> ~/.bash_profile
+```
+- 상태 확인
+```bash
+ncp-iam-authenticator help
+```
+- 출력 결과
+```bash
 
-# 1. NKS 생성
+```
 
-1. 클러스터 22개 생성하기
-    - vCPU 8EA, Memory 16GB
-    - 100gb
-    - 노드 1
-2. acg 포트 허용(모든 포트) 1-65535 - 22개
-TCP	59.10.110.164/32	1-65535
-UDP	59.10.110.164/32	1-65535
-ICMP	59.10.110.164/32
+### 2) IAM 인증 kubeconfig 생성
 
-3. 각 클러스터 터미널로 접근(워커1로) - ssh 공인아이피
-    - 관리자 비밀번호 확인
-    서버 이름
-    관리자 이름
-    ncloud
-    비밀번호
-4. 루트 계정 허용
-    - 루트 비밀번호 설정
-    - sshd_config 수정
-    - restart
-    - 접근 확인
-    
-    ---
-    
-    >> 여기까지 전날에 준비
-    
-    alias k='kubectl --kubeconfig=/root/.kube/kubeconfig.yaml’
-    
+- OS 환경 변수 설정
+```bash
+export NCLOUD_ACCESS_KEY=ncp_iam_BGASKRuQuDOD2EQqlIl1
+export NCLOUD_SECRET_KEY=ncp_iam_BGKSKR9M5cnaOTM6f16GbMRd5QLi0SiSpK
+export NCLOUD_API_GW=https://ncloud.apigw.gov-ntruss.com
+```
+- configure 파일 생성
+```bash
+mkdir ~/.ncloud
+```
+```bash
+cd ~/.ncloud
+```
+```bash
+cat <<EOF > ~/.ncloud/configure
+[DEFAULT]
+ncloud_access_key_id = ncp_iam_BGASKRuQuDOD2EQqlIl1
+ncloud_secret_access_key = ncp_iam_BGKSKR9M5cnaOTM6f16GbMRd5QLi0SiSpK
+ncloud_api_url = https://ncloud.apigw.gov-ntruss.com
+
+[project]
+ncloud_access_key_id = ncp_iam_BGASKRuQuDOD2EQqlIl1
+ncloud_secret_access_key = ncp_iam_BGKSKR9M5cnaOTM6f16GbMRd5QLi0SiSpK
+ncloud_api_url = https://ncloud.apigw.gov-ntruss.com
+EOF
+```
+- kubeconfig 생성
+```bash
+ncp-iam-authenticator create-kubeconfig --region KR --clusterUuid <클러스터uuid> --output kubeconfig.yaml
+```
+- 클러스터 확인
+```bash
+kubectl get nodes --kubeconfig=/root/.ncloud/kubeconfig.yaml
+```
+
+### 3) alias 등록
+
+```bash
+alias k='kubectl --kubeconfig=/root/.ncloud/kubeconfig.yaml'
+```
 
 ## 2. Jenkins 생성
 **Jenkins**란?
-
+코드를 빌드하고 테스트해서 애플리케이션을 만들 수 있도록 도와주는 자동화 도구입니다.
 
 ### 0) Namespace 생성
 ```bash
@@ -236,7 +278,7 @@ PW : clush1234
 
 ## 3. Nexus 생성
 **Nexus**란?
-
+빌드된 애플리케이션 이미지를 저장하고 관리하는 저장소 서버(이미지 창고)입니다.
 
 ### 0) Namespace 생성
 ```bash
@@ -437,8 +479,14 @@ cat admin.password
 ID : admin
 PW : 초기 비밀번호
 
+
 # 4. ArgoCD 생성
-----------
+**ArgoCD**란?
+
+Git 저장소와 쿠버네티스를 연결해, 코드 변경 내용을 자동으로 배포해주는 도구입니다.
+
+
+
 ### 0) Namespace 생성
 ```bash
 k create namespace argocd
@@ -466,6 +514,16 @@ k -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}
 
 
 # 5. Prometheus + Grafana 생성
+**Prometheus**란?
+
+쿠버네티스 클러스터나 애플리케이션의 상태와 지표(Metrics)를 수집하는 모니터링 도구입니다.
+
+**Grafana**란?
+
+Prometheus가 수집한 데이터를 그래프나 대시보드로 시각화해 보여주는 도구입니다.
+
+
+
 ```bash
 # helm 설치
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
