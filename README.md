@@ -1,6 +1,19 @@
 # workshop-cicd
 2025.05.31 쿠버네티스 워크샵
 
+## 0. 진행 과정
+![cicd 아키텍처](./images/cicd-architecture.png)
+
+이번 워크샵에서는 GitHub에 올라온 코드를 기반으로, 
+
+Jenkins가 코드를 가져와 애플리케이션을 빌드하고, 
+
+빌드한 이미지를 Nexus에 저장한 다음, 
+
+ArgoCD가 그 이미지를 감지해서 Kubernetes 클러스터에 자동 배포하는 전체 과정을 실습 해보겠습니다.
+
+
+
 ## 1. GitOps CI/CD 파이프라인 구축
 ### 1) 
 
