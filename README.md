@@ -58,60 +58,88 @@ ICMP	59.10.110.164/32
     alias k='kubectl --kubeconfig=/root/.kube/kubeconfig.yaml’
     
 
-# 2. Jenkins 생성
+## 2. Jenkins 생성
+**Jenkins**란?
 
-<aside>
-💡
 
-참고
-https://kbsyscloud.atlassian.net/wiki/spaces/CLOUD/pages/208994305/HL+DEV-EKS-Jenkins
-
-</aside>
-
+### 0) Namespace 생성
 ```bash
 k create namespace jenkins
 ```
 
-## 1) sc.yaml apply
+jenkins manifest 파일을 모을 폴더 생성
+```bash
+mkdir -p ~/manifest/jenkins
+```
+```bash
+cd ~/manifest/jenkins
+```
+
+### 1) Storage Class 생성
+**Storage Class란?**
+
+쿠버네티스에서 “어떤 성능과 방식의 저장공간을 자동으로 만들지” 정해주는 설정입니다.
+
+```bash
+vi sc.yaml
+```
 
 ```yaml
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: jenkins-sc
-provisioner: blk.csi.ncloud.com
-parameters:
-  type: SSD
-reclaimPolicy: Retain
-volumeBindingMode: WaitForFirstConsumer
+  name: jenkins-sc                         # PVC에서 사용할 StorageClass 이름
+provisioner: blk.csi.ncloud.com            # Naver Cloud용 Block Storage CSI 드라이버
+parameters:   
+  type: SSD                                # 저장소 타입 : SSD
+reclaimPolicy: Retain                      # PVC 삭제 시 볼륨을 남겨둠
+volumeBindingMode: WaitForFirstConsumer    # 실제로 Pod가 만들어져야 볼륨도 생성됨
 ```
 
 ```bash
 k apply -f sc.yaml
 ```
 
-## 2) pvc.yaml apply
+### 2) PersistentVolumeClaim 생성
+**PersistentVolumeClaim이란?**
+
+애플리케이션이 쿠버네티스에 “이만큼 저장공간이 필요하다”고 요청하는 자원 요청서입니다.
+
+StorageClass를 참고하여 실제 볼륨이 생성됩니다.
+
+```bash
+vi pvc.yaml
+```
 
 ```yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: jenkins-pvc
-  namespace: jenkins
+  name: jenkins-pvc               # PVC 이름
+  namespace: jenkins              # PVC가 속할 네임스페이스
 spec:
   accessModes:
-    - ReadWriteOnce
-  storageClassName: jenkins-sc
+    - ReadWriteOnce               # 하나의 노드에서 읽기/쓰기 가능
+  storageClassName: jenkins-sc    # 사용할 StorageClass 이름
   resources:
     requests:
-      storage: 10Gi
+      storage: 10Gi               # 요청할 저장공간 용량(10GiB)
 ```
 
 ```bash
 k apply -f pvc.yaml
 ```
 
-## 3) deploy.yaml apply
+### 3) Deployment 생성
+**Deployment**란?
+
+애플리케이션을 몇 개의 Pod로 실행할지, 언제 재시작할지 등을 정의하는 실행 관리 설정입니다.
+
+애플리케이션을 안정적으로 배포하고 운영하기 위한 핵심 구성 요소입니다.
+
+```bash
+vi deploy.yaml
+```
 
 ```yaml
 apiVersion: apps/v1
@@ -164,7 +192,16 @@ spec:
 k apply -f deploy.yaml
 ```
 
-## 4) svc.yaml apply
+### 4) Service 생성
+**Service**란?
+
+쿠버네티스에서 Pod에 안정적으로 접근할 수 있도록 IP와 포트를 제공해주는 네트워크 설정입니다.
+
+외부 또는 클러스터 내부에서 애플리케이션에 접근할 때 사용됩니다.
+
+```bash
+vi svc.yaml
+```
 
 ```yaml
 apiVersion: v1
@@ -189,67 +226,96 @@ spec:
 k apply -f svc.yaml
 ```
 
-젠킨스 접속 URL
+### 5) Jenkins 접속
 
-http://27.96.145.28:30080/
+http://[서버공인IP]:30080/
 
-ID : test
+ID : admin
 
-PW : test
+PW : clush1234
 
-# 3. Nexus 생성
+## 3. Nexus 생성
+**Nexus**란?
 
-<aside>
-💡
 
-참고
-
-</aside>
-
+### 0) Namespace 생성
 ```bash
 k create namespace nexus
 ```
 
-## 1) sc.yaml apply
+jenkins manifest 파일을 모을 폴더 생성
+```bash
+mkdir -p ~/manifest/nexus
+```
+```bash
+cd ~/manifest/nexus
+```
+
+### 1) Storage Class 생성
+**Storage Class란?**
+
+쿠버네티스에서 “어떤 성능과 방식의 저장공간을 자동으로 만들지” 정해주는 설정입니다.
+
+```bash
+vi sc.yaml
+```
 
 ```yaml
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: nexus-sc
-provisioner: blk.csi.ncloud.com
-parameters:
-  type: SSD
-reclaimPolicy: Retain
-volumeBindingMode: WaitForFirstConsumer
+  name: nexus-sc                           # PVC에서 사용할 StorageClass 이름
+provisioner: blk.csi.ncloud.com            # Naver Cloud용 Block Storage CSI 드라이버
+parameters:   
+  type: SSD                                # 저장소 타입 : SSD
+reclaimPolicy: Retain                      # PVC 삭제 시 볼륨을 남겨둠
+volumeBindingMode: WaitForFirstConsumer    # 실제로 Pod가 만들어져야 볼륨도 생성됨
 ```
 
 ```bash
 k apply -f sc.yaml
 ```
 
-## 2) pvc.yaml apply
+### 2) PersistentVolumeClaim 생성
+**PersistentVolumeClaim이란?**
+
+애플리케이션이 쿠버네티스에 “이만큼 저장공간이 필요하다”고 요청하는 자원 요청서입니다.
+
+StorageClass를 참고하여 실제 볼륨이 생성됩니다.
+
+```bash
+vi pvc.yaml
+```
 
 ```yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: nexus-pvc
-  namespace: nexus
+  name: nexus-pvc                 # PVC 이름
+  namespace: nexus                # PVC가 속할 네임스페이스
 spec:
   accessModes:
-    - ReadWriteOnce
-  storageClassName: nexus-sc
+    - ReadWriteOnce               # 하나의 노드에서 읽기/쓰기 가능
+  storageClassName: nexus-sc      # 사용할 StorageClass 이름
   resources:
     requests:
-      storage: 10Gi
+      storage: 10Gi               # 요청할 저장공간 용량(10GiB)
 ```
 
 ```bash
 k apply -f pvc.yaml
 ```
 
-## 3) deploy.yaml apply
+### 3) Deployment 생성
+**Deployment**란?
+
+애플리케이션을 몇 개의 Pod로 실행할지, 언제 재시작할지 등을 정의하는 실행 관리 설정입니다.
+
+애플리케이션을 안정적으로 배포하고 운영하기 위한 핵심 구성 요소입니다.
+
+```bash
+vi deploy.yaml
+```
 
 ```yaml
 apiVersion: apps/v1
@@ -302,7 +368,16 @@ spec:
 k apply -f deploy.yaml
 ```
 
-## 4) svc.yaml apply
+### 4) Service 생성
+**Service**란?
+
+쿠버네티스에서 Pod에 안정적으로 접근할 수 있도록 IP와 포트를 제공해주는 네트워크 설정입니다.
+
+외부 또는 클러스터 내부에서 애플리케이션에 접근할 때 사용됩니다.
+
+```bash
+vi svc.yaml
+```
 
 ```yaml
 apiVersion: v1
@@ -331,50 +406,66 @@ spec:
 k apply -f svc.yaml
 ```
 
-Nexus 접속 URL
+### 5) Nexus 접속
 
-http://27.96.145.28:30081/
+http://[서버공인IP]:30081/
+
+**초기 비밀번호 조회**
+
+Pod 내부의 /nexus-data/admin.password에 위치
+
+- Pod 조회
+```bash
+k get pod -n nexus
+```
+- Pod 접속
+```bash
+k exec -it <pod명> -n nexus -- /bin/bash 
+```
+- 폴더 이동
+```bash
+cd /nexus-data
+```
+- 파일 조회
+```bash
+ls -al
+```
+- 비밀번호 조회
+```bash
+cat admin.password
+```
+ID : admin
+PW : 초기 비밀번호
+
+# 4. ArgoCD 생성
+----------
+### 0) Namespace 생성
+```bash
+k create namespace argocd
+```
+
+### 1) ArgoCD 배포
+```bash
+k apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
+
+### 2) NodePort로 수정
+```bash
+k patch svc argocd-server -n argocd -p '{"spec":{"type":"NodePort","ports":[{"port":80,"targetPort":8080,"nodePort":30082}]}}'
+```
+
+### 3) ArgoCD 접속
+[서버공인IP]:30082
 
 ID : admin
 
-PW : clush1234
-
-# 4. ArgoCD 생성
-
-<aside>
-💡
-
-참고
-https://potato-yong.tistory.com/137
-
-</aside>
-
+**초기 비밀번호 조회**
 ```bash
-# argocd namespace 생성
-k create namespace argocd
-
-# argocd 배포
-k apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
- 
+k -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
 
-```bash
-# NodePort로 수정
-k edit svc argocd-server -n argocd
-
-k patch svc argocd-server -n argocd -p '{"spec": {"type": "NodePort"}}'
-# 이렇게 하는게 실수없을듯
-kubectl patch svc argocd-server -n argocd -p '{"spec":{"type":"NodePort","ports":[{"port":80,"targetPort":8080,"nodePort":30082}]}}'
-
-# secret 암호 정보를 평문으로 가져옴
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
-
-```
 
 # 5. Prometheus + Grafana 생성
-
-챗지피티의 추천 방법으로 진행해보았습니다……
-
 ```bash
 # helm 설치
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
@@ -397,50 +488,24 @@ helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack   
 # 비밀번호 조회
 k --namespace monitoring get secrets kube-prometheus-stack-grafana   -o jsonpath="{.data.admin-password}" | base64 -d && echo
 
-# 
+# Grafana Pod의 이름을 자동으로 찾아서 POD_NAME이라는 변수에 저장하는 작업
 export POD_NAME=$(kubectl -n monitoring get pod \
   -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=kube-prometheus-stack" \
   -o name)
   
 # NodePort로 변경
-kubectl patch svc kube-prometheus-stack-grafana -n monitoring   -p '{"spec": {"type": "NodePort"}}' 
+kubectl patch svc kube-prometheus-stack-grafana -n monitoring \
+  -p '{"spec": {"type": "NodePort", "ports": [{"port": 80, "targetPort": 3000, "nodePort": 30083}]}}' 
 ```
 
 접속 URL
 
-http://27.96.145.28:31103/
+<서버공인IP>:31103/
 
 ID : admin
 
-PW : clush1234
-
-**~~질문 >> yaml 파일 서버에 넣어놓고 진행해도 될까요?~~**
+PW : 초기 비밀번호
 
 # 추가적으로 한 부분
 
 **젠킨스 크레덴셜(nexus) 생성**
-
-![image.png](attachment:981238ae-c800-423e-8778-ddd1b13c6900:image.png)
-
-**Github test 레포생성**
-
-https://github.com/clushinfra/test
-
-cicd부분 챗지피티의 추천방법으로 진행해보았는데
-
-docker 부분(jenkins 파드에서 도커 빌드 안되지않나요?) 에서 막혔습니다..
-
-nks로 생성한 서버에서 진행하면 될까요…?
-
-잘모르겠습니다,,,,,,
-
-# 해야되는 부분
-
-- cicd 시나리오 어떻게 진행해야될까요..
-- 모니터링 세션때 어떤거를 체크하고 봐야되는지? 연결할게 따로 있는지..?
-- 모니터링(prometheus+grafana) 관련 개념 공부 → 1도 모름.. 세미나때 설명할수있을정도로 공부필요
-- 워크샵때 github 레포에 올라간 코드에 삽입되는 공인아이피가 다 다를텐데(nks 서버 공인아이피), 이거 어떻게 진행하면 좋을까요
-- argocd는 어떻게 연결해야될지 찾아봐야됨..
-- nks 22개 생성(워크샵 전날)
-- vpn 발급 .. 안해도될듯? 사내깃랩 안쓰니까
--
