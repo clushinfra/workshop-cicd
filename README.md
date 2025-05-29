@@ -1,6 +1,11 @@
 # workshop-cicd
 2025.05.31 쿠버네티스 워크샵
 
+Workshop_Data 엑셀 확인
+
+https://kbsys2015-my.sharepoint.com/:x:/g/personal/ehyang_clush_net/ERd4nX6F6w5Eu9vrTpCH6HoBzqHip2K22DcEIIGJCOOzeQ?e=ddRMB4
+
+
 ## CI/CD 실습 진행 순서
 ![cicd 아키텍처](./images/cicd-architecture.png)
 
@@ -816,17 +821,20 @@ https://github.com/clushinfra/workshop-cicd/blob/main/Jenkinsfile
 <br />
 <br />
 
-## 7. 배포 확인
+## 8. 배포 확인
 
 <br />
 
 ### 접속 : <서버공인IP>:31111
 
+```bash
+k get all -n workshop
+```
 
 <br />
 <br />
 
-# 5. Prometheus + Grafana 생성
+## 5. Prometheus + Grafana 생성
 
 <br />
 
@@ -857,6 +865,9 @@ helm repo update
 
 # namespace 생성
 k create namespace monitoring
+
+# config 생성
+cp ~/.ncloud/kubeconfig.yaml ~/.kube/config
 
 # 다운로드
 helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack   -n monitoring   --set prometheus.prometheusSpec.maximumStartupDurationSeconds=300
