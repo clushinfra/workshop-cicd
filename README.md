@@ -572,82 +572,87 @@ https://github.com/clushinfra/workshop-cicd/blob/main/Jenkinsfile
 ![jenkins pipeline 아키텍처](./images/jenkins-pipeline.png)
 
 ### 매개변수 등록
-1) SERVER_PUBLIC_IP
+---
+**1) SERVER_PUBLIC_IP**
 
 ![jenkins 매개변수](./images/jenkins-1.png)
 
-- 매개변수 명 : SERVER_PUBLIC_IP
-- Default Value : 서버 공인 IP
-
-2) SOURCE_GIT_URL
+- 매개변수 명 : ```SERVER_PUBLIC_IP```
+- Default Value : ```서버 공인 IP```
+---
+**2) SOURCE_GIT_URL**
 
 ![jenkins 매개변수](./images/jenkins-2.png)
 
-- 매개변수 명 : SOURCE_GIT_URL
-- Default Value : github.com/clushinfra/workshop-front.git
-
-3) SOURCE_BRANCH
+- 매개변수 명 : ```SOURCE_GIT_URL```
+- Default Value : ```github.com/clushinfra/workshop-front.git```
+---
+**3) SOURCE_BRANCH**
 
 ![jenkins 매개변수](./images/jenkins-3.png)
 
-- 매개변수 명 : SOURCE_BRANCH
-- Default Value : main
-
-4) CICD_GIT_URL
+- 매개변수 명 : ```SOURCE_BRANCH```
+- Default Value : ```main```
+---
+**4) CICD_GIT_URL**
 
 ![jenkins 매개변수](./images/jenkins-4.png)
 
-- 매개변수 명 : CICD_GIT_URL
-- Default Value : github.com/clushinfra/workshop-cicd.git
-
-5) CICD_BRANCH
+- 매개변수 명 : ```CICD_GIT_URL```
+- Default Value : ```github.com/clushinfra/workshop-cicd.git```
+---
+**5) CICD_BRANCH**
 
 ![jenkins 매개변수](./images/jenkins-5.png)
 
-- 매개변수 명 : CICD_BRANCH
-- Default Value : 메일 ID
-
-6) DEPLOY_APP_NAME
+- 매개변수 명 : ```CICD_BRANCH```
+- Default Value : ```메일 ID```
+---
+**6) DEPLOY_APP_NAME**
 
 ![jenkins 매개변수](./images/jenkins-6.png)
 
-- 매개변수 명 : DEPLOY_APP_NAME
-- Default Value : workshop
-
-7) NS
+- 매개변수 명 : ```DEPLOY_APP_NAME```
+- Default Value : ```workshop```
+---
+**7) NS**
 
 ![jenkins 매개변수](./images/jenkins-7.png)
 
-- 매개변수 명 : NS
-- Default Value : workshop
-
-8) CLUSTER
+- 매개변수 명 : ```NS```
+- Default Value : ```workshop```
+---
+**8) CLUSTER**
 
 ![jenkins 매개변수](./images/jenkins-8.png)
 
-- 매개변수 명 : CLUSTER
-- Default Value : https://kubernetes.default.svc
-
-9) DOCKER_BASE_IMAGE
+- 매개변수 명 : ```CLUSTER```
+- Default Value : ```https://kubernetes.default.svc```
+---
+**9) DOCKER_BASE_IMAGE**
 
 ![jenkins 매개변수](./images/jenkins-9.png)
 
-- 매개변수 명 : DOCKER_BASE_IMAGE
-- Default Value : docker.io/nginx:1.26.2
-
-10) DOCKER_DEPLOY_PORT
+- 매개변수 명 : ```DOCKER_BASE_IMAGE```
+- Default Value : ```docker.io/nginx:1.26.2```
+---
+**10) DOCKER_DEPLOY_PORT**
 
 ![jenkins 매개변수](./images/jenkins-10.png)
 
-- 매개변수 명 : DOCKER_DEPLOY_PORT
-- Default Value : 80
-
+- 매개변수 명 : ```DOCKER_DEPLOY_PORT```
+- Default Value : ```80```
+---
 ### Pipeline 등록
 
-- Repository URL : https://github.com/clushinfra/workshop-cicd.git
-- Credentials : github credential 사용
-- Branch : main
-- Script Path : Jenkinsfile
+- Repository URL : ```https://github.com/clushinfra/workshop-cicd.git```
+- Credentials : ```github credential 사용```
+- Branch : ```main```
+- Script Path : ```Jenkinsfile```
+
+## 7. 배포 확인
+
+
 
 
 
