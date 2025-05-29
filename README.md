@@ -342,9 +342,51 @@ k apply -f svc.yaml
 
 <br />
 
-### 5) Jenkins 접속
+### 5) Jenkins 파일 업로드
 
-http://[서버공인IP]:30080/
+- 젠킨스 tar 파일 다운로드
+https://drive.google.com/file/d/17tQGNK_djcFC2CGWpVO-0QUkNtDw0PUU/view?usp=drive_link
+
+- 파일 서버에 보내기
+```bash
+scp jenkins_home.tar.gz root@211.188.64.246:/root
+```
+
+- 파드 확인
+```bash
+k get pod -n jenkins
+```
+
+- 파일 파드에 보내기
+```bash
+k cp jenkins_home.tar.gz -n <pod명>:/var
+```
+
+- 파드 접근
+```bash
+k exec -it <pod명> -n jenkins -- bash
+```
+
+- 압축 해제
+```bash
+cd /var
+```
+```bash
+tar -zxvf jenkins_home.tar.gz
+```
+```bash
+cd jenkins_home
+```
+```bash
+ls
+```
+
+<br />
+<br />
+
+### 6) Jenkins 접속
+
+>> http://[서버공인IP]:30080/
 
 초기비밀번호 위치
 /var/jenkins_home/secrets/initialAdminPassword
@@ -353,9 +395,9 @@ http://[서버공인IP]:30080/
 cat /var/jenkins_home/secrets/initialAdminPassword
 ```
 
-ID : admin
+- ID : admin
 
-PW : clush1234
+- PW : clush1234
 
 <br />
 <br />
@@ -569,7 +611,7 @@ k apply -f svc.yaml
 
 ### 5) Nexus 접속
 
-http://[서버공인IP]:30081/
+### 접속 : <서버공인IP>:30081
 
 <br />
 
@@ -602,7 +644,6 @@ PW : 초기 비밀번호
 
 <br />
 <br />
-
 
 # 4. ArgoCD 생성
 
@@ -637,7 +678,8 @@ k patch svc argocd-server -n argocd -p '{"spec":{"type":"NodePort","ports":[{"po
 <br />
 
 ### 3) ArgoCD 접속
-[서버공인IP]:30082
+
+### 접속 : <서버공인IP>:30082
 
 ID : admin
 
@@ -683,6 +725,7 @@ k -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}
 <br />
 
 https://github.com/clushinfra/workshop-cicd/blob/main/Jenkinsfile
+
 해당 Jenkins 파일을 사용해 파이프라인을 생성할 예정입니다.
 
 <br />
@@ -777,26 +820,27 @@ https://github.com/clushinfra/workshop-cicd/blob/main/Jenkinsfile
 
 <br />
 
-
-
-
-
-
+### 접속 : <서버공인IP>:31111
 
 
 <br />
 <br />
 
 # 5. Prometheus + Grafana 생성
+
+<br />
+
 **Prometheus**란?
 
 쿠버네티스 클러스터나 애플리케이션의 상태와 지표(Metrics)를 수집하는 모니터링 도구입니다.
+
+<br />
 
 **Grafana**란?
 
 Prometheus가 수집한 데이터를 그래프나 대시보드로 시각화해 보여주는 도구입니다.
 
-
+<br />
 
 ```bash
 # helm 설치
@@ -830,14 +874,10 @@ kubectl patch svc kube-prometheus-stack-grafana -n monitoring \
   -p '{"spec": {"type": "NodePort", "ports": [{"port": 80, "targetPort": 3000, "nodePort": 30083}]}}' 
 ```
 
-접속 URL
+## 접속 확인
 
-<서버공인IP>:31103/
+### 접속 : <서버공인IP>:30083/
 
 ID : admin
 
 PW : 초기 비밀번호
-
-# 추가적으로 한 부분
-
-**젠킨스 크레덴셜(nexus) 생성**
