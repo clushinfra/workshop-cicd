@@ -16,6 +16,9 @@ ArgoCD가 그 이미지를 감지해서 Kubernetes 클러스터에 자동 배포
 
 CI/CD 과정을 실습 해보겠습니다.
 
+<br />
+<br />
+
 ## 0. CI/CD란?
 
 ### CI란? (지속적 통합, Continuous Integration)
@@ -32,7 +35,12 @@ CI/CD 과정을 실습 해보겠습니다.
 
 ---
 
+<br />
+<br />
+
 ## 1. NKS Authentication 등록
+
+<br />
 
 ### 1) ncp-iam-authenticator 설치
 
@@ -56,6 +64,8 @@ echo 'export PATH=$PATH:$HOME/bin' >> ~/.bash_profile
 ```bash
 ncp-iam-authenticator help
 ```
+
+<br />
 
 ### 2) IAM 인증 kubeconfig 생성
 
@@ -94,15 +104,25 @@ ncp-iam-authenticator create-kubeconfig --region KR --clusterUuid <클러스터u
 kubectl get nodes --kubeconfig=/root/.ncloud/kubeconfig.yaml
 ```
 
+<br />
+
 ### 3) alias 등록
 
 ```bash
 alias k='kubectl --kubeconfig=/root/.ncloud/kubeconfig.yaml'
 ```
 
+<br />
+<br />
+
 ## 2. Jenkins 생성
+
+<br />
+
 **Jenkins**란?
 코드를 빌드하고 테스트해서 애플리케이션을 만들 수 있도록 도와주는 자동화 도구입니다.
+
+<br />
 
 ### 0) Namespace 생성
 ```bash
@@ -117,10 +137,17 @@ mkdir -p ~/manifest/jenkins
 cd ~/manifest/jenkins
 ```
 
+<br />
+
 ### 1) Storage Class 생성
+
+<br />
+
 **Storage Class란?**
 
 쿠버네티스에서 “어떤 성능과 방식의 저장공간을 자동으로 만들지” 정해주는 설정입니다.
+
+<br />
 
 ```bash
 vi sc.yaml
@@ -154,12 +181,19 @@ nks-block-storage (default)   blk.csi.ncloud.com   Delete          WaitForFirstC
 nks-nas-csi                   nas.csi.ncloud.com   Delete          WaitForFirstConsumer   true                   16h
 ```
 
+<br />
+
 ### 2) PersistentVolumeClaim 생성
+
+<br />
+
 **PersistentVolumeClaim이란?**
 
 애플리케이션이 쿠버네티스에 “이만큼 저장공간이 필요하다”고 요청하는 자원 요청서입니다.
 
 StorageClass를 참고하여 실제 볼륨이 생성됩니다.
+
+<br />
 
 ```bash
 vi pvc.yaml
@@ -190,12 +224,19 @@ NAME          STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   VOLUME
 jenkins-pvc   Pending                                      jenkins-sc     <unset>                 18s
 ```
 
+<br />
+
 ### 3) Deployment 생성
+
+<br />
+
 **Deployment**란?
 
 애플리케이션을 몇 개의 Pod로 실행할지, 언제 재시작할지 등을 정의하는 실행 관리 설정입니다.
 
 애플리케이션을 안정적으로 배포하고 운영하기 위한 핵심 구성 요소입니다.
+
+<br />
 
 ```bash
 vi deploy.yaml
@@ -258,12 +299,19 @@ NAME      READY   UP-TO-DATE   AVAILABLE   AGE
 jenkins   0/1     1            0           28s
 ```
 
+<br />
+
 ### 4) Service 생성
+
+<br />
+
 **Service**란?
 
 쿠버네티스에서 Pod에 안정적으로 접근할 수 있도록 IP와 포트를 제공해주는 네트워크 설정입니다.
 
 외부 또는 클러스터 내부에서 애플리케이션에 접근할 때 사용됩니다.
+
+<br />
 
 ```bash
 vi svc.yaml
@@ -292,6 +340,8 @@ spec:
 k apply -f svc.yaml
 ```
 
+<br />
+
 ### 5) Jenkins 접속
 
 http://[서버공인IP]:30080/
@@ -307,9 +357,17 @@ ID : admin
 
 PW : clush1234
 
+<br />
+<br />
+
 ## 3. Nexus 생성
+
+<br />
+
 **Nexus**란?
 빌드된 애플리케이션 이미지를 저장하고 관리하는 저장소 서버(이미지 창고)입니다.
+
+<br />
 
 ### 0) Namespace 생성
 ```bash
@@ -324,10 +382,17 @@ mkdir -p ~/manifest/nexus
 cd ~/manifest/nexus
 ```
 
+<br />
+
 ### 1) Storage Class 생성
+
+<br />
+
 **Storage Class란?**
 
 쿠버네티스에서 “어떤 성능과 방식의 저장공간을 자동으로 만들지” 정해주는 설정입니다.
+
+<br />
 
 ```bash
 vi sc.yaml
@@ -349,12 +414,19 @@ volumeBindingMode: WaitForFirstConsumer    # 실제로 Pod가 만들어져야 �
 k apply -f sc.yaml
 ```
 
+<br />
+
 ### 2) PersistentVolumeClaim 생성
+
+<br />
+
 **PersistentVolumeClaim이란?**
 
 애플리케이션이 쿠버네티스에 “이만큼 저장공간이 필요하다”고 요청하는 자원 요청서입니다.
 
 StorageClass를 참고하여 실제 볼륨이 생성됩니다.
+
+<br />
 
 ```bash
 vi pvc.yaml
@@ -379,12 +451,19 @@ spec:
 k apply -f pvc.yaml
 ```
 
+<br />
+
 ### 3) Deployment 생성
+
+<br />
+
 **Deployment**란?
 
 애플리케이션을 몇 개의 Pod로 실행할지, 언제 재시작할지 등을 정의하는 실행 관리 설정입니다.
 
 애플리케이션을 안정적으로 배포하고 운영하기 위한 핵심 구성 요소입니다.
+
+<br />
 
 ```bash
 vi deploy.yaml
@@ -441,12 +520,19 @@ spec:
 k apply -f deploy.yaml
 ```
 
+<br />
+
 ### 4) Service 생성
+
+<br />
+
 **Service**란?
 
 쿠버네티스에서 Pod에 안정적으로 접근할 수 있도록 IP와 포트를 제공해주는 네트워크 설정입니다.
 
 외부 또는 클러스터 내부에서 애플리케이션에 접근할 때 사용됩니다.
+
+<br />
 
 ```bash
 vi svc.yaml
@@ -479,9 +565,13 @@ spec:
 k apply -f svc.yaml
 ```
 
+<br />
+
 ### 5) Nexus 접속
 
 http://[서버공인IP]:30081/
+
+<br />
 
 **초기 비밀번호 조회**
 
@@ -510,12 +600,19 @@ cat admin.password
 ID : admin
 PW : 초기 비밀번호
 
+<br />
+<br />
+
 
 # 4. ArgoCD 생성
+
+<br />
+
 **ArgoCD**란?
 
 Git 저장소와 쿠버네티스를 연결해, 코드 변경 내용을 자동으로 배포해주는 도구입니다.
 
+<br />
 
 
 ### 0) Namespace 생성
@@ -523,28 +620,42 @@ Git 저장소와 쿠버네티스를 연결해, 코드 변경 내용을 자동으
 k create namespace argocd
 ```
 
+<br />
+
 ### 1) ArgoCD 배포
 ```bash
 k apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
+
+<br />
 
 ### 2) NodePort로 수정
 ```bash
 k patch svc argocd-server -n argocd -p '{"spec":{"type":"NodePort","ports":[{"port":80,"targetPort":8080,"nodePort":30082}]}}'
 ```
 
+<br />
+
 ### 3) ArgoCD 접속
 [서버공인IP]:30082
 
 ID : admin
+
+<br />
 
 **초기 비밀번호 조회**
 ```bash
 k -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
 
+<br />
+<br />
+
 ## 5. Jenkins 비밀번호 변경
 ![jenkins passwd 변경](./images/jenkins-pw.png)
+
+<br />
+<br />
 
 ## 6. Jenkins Credential 생성
 ![jenkins credential 생성](./images/jenkins-credential.png)
@@ -564,12 +675,21 @@ k -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}
 - Password : 입력
 - ID : ARGOCD
 
-## 6. Jenkins Job 생성
+<br />
+<br />
+
+## 7. Jenkins Job 생성
+
+<br />
 
 https://github.com/clushinfra/workshop-cicd/blob/main/Jenkinsfile
 해당 Jenkins 파일을 사용해 파이프라인을 생성할 예정입니다.
 
+<br />
+
 ![jenkins pipeline 아키텍처](./images/jenkins-pipeline.png)
+
+<br />
 
 ### 매개변수 등록
 ---
@@ -650,11 +770,22 @@ https://github.com/clushinfra/workshop-cicd/blob/main/Jenkinsfile
 - Branch : ```main```
 - Script Path : ```Jenkinsfile```
 
+<br />
+<br />
+
 ## 7. 배포 확인
 
+<br />
 
 
 
+
+
+
+
+
+<br />
+<br />
 
 # 5. Prometheus + Grafana 생성
 **Prometheus**란?
