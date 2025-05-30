@@ -629,7 +629,7 @@ ls -al
 ```
 - 비밀번호 조회
 ```bash
-cat admin.password
+cat admin.password; echo
 ```
 ID : admin
 PW : 초기 비밀번호
