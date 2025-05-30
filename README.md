@@ -430,7 +430,7 @@ k delete pod <파드이름> -n jenkins
 
 ### 6) Jenkins 접속
 
->> http://[서버공인IP]:30080/
+### 접속 : [서버공인IP]:30080/
 
 초기비밀번호 위치
 /var/jenkins_home/secrets/initialAdminPassword
