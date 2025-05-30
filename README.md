@@ -233,11 +233,11 @@ spec:
           protocol: TCP
         resources:
           limits:
+            cpu: 4
+            memory: 8Gi
+          requests:
             cpu: 2
             memory: 4Gi
-          requests:
-            cpu: 1
-            memory: 2Gi
         securityContext:
           privileged: true
         volumeMounts:
@@ -319,7 +319,7 @@ k get pod -n jenkins
 
 - 파일 파드에 보내기
 ```bash
-k cp jenkins_home.tar.gz -n <pod명>:/var
+k cp jenkins_home.tar.gz -n jenkins <pod명>:/var
 ```
 
 - 파드 접근
@@ -472,11 +472,11 @@ spec:
           name: nexus-docker
         resources:
           limits:
+            cpu: 4
+            memory: 8Gi
+          requests:
             cpu: 2
             memory: 4Gi
-          requests:
-            cpu: 1
-            memory: 2Gi
         volumeMounts:
         - name: nexus-data
           mountPath: /nexus-data
@@ -631,7 +631,7 @@ k -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}
 ![jenkins credential 생성](./images/jenkins-credential.png)
 
 ### Github
-- Username : admin
+- Username : clushinfra
 - Password : 입력
 - ID : GITHUB
 
