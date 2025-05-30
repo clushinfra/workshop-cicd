@@ -47,6 +47,10 @@ CI/CD 과정을 실습 해보겠습니다.
 
 <br />
 
+NCP IAM 인증이란?
+
+NKS 클러스터에 kubectl로 접근하기 위해 필요한 인증 과정입니다.
+
 ### 1) ncp-iam-authenticator 설치
 
 - ncp-iam-authenticator 다운로드
@@ -144,51 +148,7 @@ cd ~/manifest/jenkins
 
 <br />
 
-### 1) Storage Class 생성
-
-<br />
-
-**Storage Class란?**
-
-쿠버네티스에서 “어떤 성능과 방식의 저장공간을 자동으로 만들지” 정해주는 설정입니다.
-
-<br />
-
-```bash
-vi sc.yaml
-```
-
-```yaml
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: jenkins-sc                         # PVC에서 사용할 StorageClass 이름
-provisioner: blk.csi.ncloud.com            # Naver Cloud용 Block Storage CSI 드라이버
-parameters:   
-  type: SSD                                # 저장소 타입 : SSD
-reclaimPolicy: Retain                      # PVC 삭제 시 볼륨을 남겨둠
-volumeBindingMode: WaitForFirstConsumer    # 실제로 Pod가 만들어져야 볼륨도 생성됨
-```
-
-```bash
-k apply -f sc.yaml
-```
-
-```bash
-k get sc
-```
-
-```bash
-root@ehyang-w-3c0c:~/manifest/jenkins# k get sc
-NAME                          PROVISIONER          RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
-jenkins-sc                    blk.csi.ncloud.com   Retain          WaitForFirstConsumer   false                  26s
-nks-block-storage (default)   blk.csi.ncloud.com   Delete          WaitForFirstConsumer   true                   16h
-nks-nas-csi                   nas.csi.ncloud.com   Delete          WaitForFirstConsumer   true                   16h
-```
-
-<br />
-
-### 2) PersistentVolumeClaim 생성
+### 1) PersistentVolumeClaim 생성
 
 <br />
 
@@ -213,7 +173,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce               # 하나의 노드에서 읽기/쓰기 가능
-  storageClassName: jenkins-sc    # 사용할 StorageClass 이름
+  storageClassName: nks-block-storage    # 사용할 StorageClass 이름
   resources:
     requests:
       storage: 10Gi               # 요청할 저장공간 용량(10GiB)
@@ -223,11 +183,6 @@ spec:
 k apply -f pvc.yaml
 ```
 
-```bash
-root@ehyang-w-3c0c:~/manifest/jenkins# k get pvc -n jenkins
-NAME          STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
-jenkins-pvc   Pending                                      jenkins-sc     <unset>                 18s
-```
 
 <br />
 
@@ -431,39 +386,7 @@ cd ~/manifest/nexus
 
 <br />
 
-### 1) Storage Class 생성
-
-<br />
-
-**Storage Class란?**
-
-쿠버네티스에서 “어떤 성능과 방식의 저장공간을 자동으로 만들지” 정해주는 설정입니다.
-
-<br />
-
-```bash
-vi sc.yaml
-```
-
-```yaml
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: nexus-sc                           # PVC에서 사용할 StorageClass 이름
-provisioner: blk.csi.ncloud.com            # Naver Cloud용 Block Storage CSI 드라이버
-parameters:   
-  type: SSD                                # 저장소 타입 : SSD
-reclaimPolicy: Retain                      # PVC 삭제 시 볼륨을 남겨둠
-volumeBindingMode: WaitForFirstConsumer    # 실제로 Pod가 만들어져야 볼륨도 생성됨
-```
-
-```bash
-k apply -f sc.yaml
-```
-
-<br />
-
-### 2) PersistentVolumeClaim 생성
+### 1) PersistentVolumeClaim 생성
 
 <br />
 
@@ -488,7 +411,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce               # 하나의 노드에서 읽기/쓰기 가능
-  storageClassName: nexus-sc      # 사용할 StorageClass 이름
+  storageClassName: nks-block-storage      # 사용할 StorageClass 이름
   resources:
     requests:
       storage: 10Gi               # 요청할 저장공간 용량(10GiB)
