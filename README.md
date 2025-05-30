@@ -17,7 +17,9 @@ Jenkins가 코드를 가져와 애플리케이션을 빌드하고,
 
 빌드한 이미지를 Nexus에 저장한 다음, 
 
-ArgoCD가 그 이미지를 감지해서 Kubernetes 클러스터에 자동 배포하는 
+ArgoCD가 그 이미지를 감지해서 
+
+Kubernetes 클러스터에 자동 배포하는 
 
 CI/CD 과정을 실습 해보겠습니다.
 
@@ -32,11 +34,14 @@ CI/CD 과정을 실습 해보겠습니다.
 ### CD란? (지속적 배포, Continuous Delivery/Deployment)
 빌드된 애플리케이션 이미지를 서버에 자동으로 배포하는 과정입니다.
 
+### 이미지란?
+컨테이너를 만들기 위한 설계도로, 어떤 프로그램을 실행할지, 필요한 파일은 무엇인지, 설정은 어떻게 할지 모두 담고 있는 파일입니다.
+
 ---
 
 개발자가 코드를 변경하고, Jenkins에서 빌드를 실행하면,
 
-그 코드가 자동으로 테스트되고, 이미지로 만들어져 서버에 배포되는 일련의 자동화 과정입니다.
+그 코드가 자동으로 테스트되고, 이미지로 만들어져 서버에 배포되는 자동화 과정입니다.
 
 ---
 
@@ -47,9 +52,23 @@ CI/CD 과정을 실습 해보겠습니다.
 
 <br />
 
-NCP IAM 인증이란?
+**NKS란?**
+
+쿠버네티스 클러스터를 직접 설치하지 않고, 자동으로 만들어주는 서비스입니다.
+
+<br />
+
+**NCP IAM 인증이란?**
 
 NKS 클러스터에 kubectl로 접근하기 위해 필요한 인증 과정입니다.
+
+<br />
+
+**kubectl**이란?
+
+쿠버네티스를 조작하는 명령어 도구(Command Line Tool)입니다.
+
+<br />
 
 ### 1) ncp-iam-authenticator 설치
 
@@ -78,33 +97,30 @@ ncp-iam-authenticator help
 
 ### 2) IAM 인증 kubeconfig 생성
 
-- OS 환경 변수 설정
+- OS 환경 변수 설정 (엑셀 참고)
 ```bash
-export NCLOUD_ACCESS_KEY=ncp_iam_BGASKRuQuDOD2EQqlIl1
-export NCLOUD_SECRET_KEY=ncp_iam_BGKSKR9M5cnaOTM6f16GbMRd5QLi0SiSpK
+export NCLOUD_ACCESS_KEY=
+export NCLOUD_SECRET_KEY=
 export NCLOUD_API_GW=https://ncloud.apigw.gov-ntruss.com
 ```
-- configure 파일 생성
-```bash
-mkdir ~/.ncloud
-```
+- configure 파일 생성 (엑셀 참고)
 ```bash
 cd ~/.ncloud
 ```
 ```bash
-cat <<EOF > ~/.ncloud/configure
+vi ~/.ncloud/configure
+
 [DEFAULT]
-ncloud_access_key_id = ncp_iam_BGASKRuQuDOD2EQqlIl1
-ncloud_secret_access_key = ncp_iam_BGKSKR9M5cnaOTM6f16GbMRd5QLi0SiSpK
-ncloud_api_url = https://ncloud.apigw.gov-ntruss.com
+ncloud_access_key_id = 
+ncloud_secret_access_key = 
+ncloud_api_url = 
 
 [project]
-ncloud_access_key_id = ncp_iam_BGASKRuQuDOD2EQqlIl1
-ncloud_secret_access_key = ncp_iam_BGKSKR9M5cnaOTM6f16GbMRd5QLi0SiSpK
-ncloud_api_url = https://ncloud.apigw.gov-ntruss.com
-EOF
+ncloud_access_key_id = 
+ncloud_secret_access_key = 
+ncloud_api_url = 
 ```
-- kubeconfig 생성
+- kubeconfig 생성 (엑셀 참고)
 ```bash
 ncp-iam-authenticator create-kubeconfig --region KR --clusterUuid <클러스터uuid> --output kubeconfig.yaml
 ```
@@ -121,6 +137,23 @@ kubectl get nodes --kubeconfig=/root/.ncloud/kubeconfig.yaml
 alias k='kubectl --kubeconfig=/root/.ncloud/kubeconfig.yaml'
 ```
 
+### config.toml 수정
+
+containerd가 기본적으로 HTTPS만 신뢰해서 HTTP 접근 허용해주는 작업
+
+```bash
+vi /etc/containerd/config.toml
+```
+
+```bash
+[plugins."io.containerd.grpc.v1.cri".registry.mirrors."<공인IP>:30500"]
+  endpoint = ["http://<공인IP>:30500"]
+```
+
+```bash
+systemctl restart containerd
+```
+
 <br />
 <br />
 
@@ -129,11 +162,21 @@ alias k='kubectl --kubeconfig=/root/.ncloud/kubeconfig.yaml'
 <br />
 
 **Jenkins**란?
+
 코드를 빌드하고 테스트해서 애플리케이션을 만들 수 있도록 도와주는 자동화 도구입니다.
 
 <br />
 
 ### 0) Namespace 생성
+
+<br />
+
+**Namespace**란?
+
+쿠버네티스 리소스를 목적이나 팀별로 구분해서 관리할 수 있게 해주는 공간입니다.
+
+<br />
+
 ```bash
 k create namespace jenkins
 ```
@@ -152,11 +195,31 @@ cd ~/manifest/jenkins
 
 <br />
 
-**PersistentVolumeClaim이란?**
+**PVC란?**
 
-애플리케이션이 쿠버네티스에 “이만큼 저장공간이 필요하다”고 요청하는 자원 요청서입니다.
+Pod가 필요로 하는 저장소를 요청하는 요청서입니다.
 
 StorageClass를 참고하여 실제 볼륨이 생성됩니다.
+
+<br />
+
+**Pod**란?
+
+Pod는 쿠버네티스에서 컨테이너가 실행되는 기본 단위입니다.
+
+컨테이너는 항상 Pod 안에서 실행되며, 보통 컨테이너 1개 = Pod 1개로 구성됩니다.
+
+<br />
+
+**Storage Class**란?
+
+쿠버네티스가 볼륨(PV)을 자동으로 만들 때 참고하는 "템플릿" 입니다.
+
+<br />
+
+**PV**란?
+
+쿠버네티스 클러스터에서 미리 만들어진 실제 저장소 공간입니다.
 
 <br />
 
@@ -168,21 +231,20 @@ vi pvc.yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: jenkins-pvc               # PVC 이름
-  namespace: jenkins              # PVC가 속할 네임스페이스
+  name: jenkins-pvc                      # PVC 이름
+  namespace: jenkins                     # PVC가 속할 네임스페이스
 spec:
   accessModes:
-    - ReadWriteOnce               # 하나의 노드에서 읽기/쓰기 가능
+    - ReadWriteOnce                      # 하나의 노드에서 읽기/쓰기 가능
   storageClassName: nks-block-storage    # 사용할 StorageClass 이름
   resources:
     requests:
-      storage: 10Gi               # 요청할 저장공간 용량(10GiB)
+      storage: 10Gi                      # 요청할 저장공간 용량(10GiB)
 ```
 
 ```bash
 k apply -f pvc.yaml
 ```
-
 
 <br />
 
@@ -211,7 +273,7 @@ metadata:
   name: jenkins
   namespace: jenkins
 spec:
-  replicas: 1
+  replicas: 1                # Pod 수 1개 실행  
   selector:
     matchLabels:
       app: jenkins
@@ -240,9 +302,9 @@ spec:
             memory: 4Gi
         securityContext:
           privileged: true
-        volumeMounts:
+        volumeMounts:                  
         - name: jenkins-home
-          mountPath: /var/jenkins_home
+          mountPath: /var/jenkins_home    # 이 경로에 데이터를 저장함
       volumes:
       - name: jenkins-home
         persistentVolumeClaim:
@@ -286,18 +348,32 @@ metadata:
   labels:
     app: jenkins
 spec:
-  type: NodePort
+  type: NodePort            # 외부에서 접근 가능한 NodePort 타입 서비스
   ports:
   - port: 8080
     targetPort: 8080
-    nodePort: 30080
+    nodePort: 30080         # 외부에서 접근할 포트번호
     name: jenkins-web
   selector:
     app: jenkins
 ```
 
+<br />
+
+**NodePort**란?
+
+쿠버네티스 바깥에서 특정 포트를 통해 앱에 접속할 수 있게 해주는 기능입니다.
+
+<br />
+
 ```bash
 k apply -f svc.yaml
+```
+
+<br />
+
+```bash
+k get svc -n jenkins
 ```
 
 <br />
@@ -338,8 +414,16 @@ tar -zxvf jenkins_home.tar.gz
 cd jenkins_home
 ```
 ```bash
-ls
+exit
 ```
+- 파드 재실행
+```bash
+k get pod -n jenkins
+```
+```bash
+k delete pod <파드이름> -n jenkins
+```
+삭제해도 자동으로 다시 생성
 
 <br />
 <br />
@@ -350,10 +434,6 @@ ls
 
 초기비밀번호 위치
 /var/jenkins_home/secrets/initialAdminPassword
-
-```bash
-cat /var/jenkins_home/secrets/initialAdminPassword
-```
 
 - ID : admin
 
@@ -390,14 +470,6 @@ cd ~/manifest/nexus
 
 <br />
 
-**PersistentVolumeClaim이란?**
-
-애플리케이션이 쿠버네티스에 “이만큼 저장공간이 필요하다”고 요청하는 자원 요청서입니다.
-
-StorageClass를 참고하여 실제 볼륨이 생성됩니다.
-
-<br />
-
 ```bash
 vi pvc.yaml
 ```
@@ -410,7 +482,7 @@ metadata:
   namespace: nexus                # PVC가 속할 네임스페이스
 spec:
   accessModes:
-    - ReadWriteOnce               # 하나의 노드에서 읽기/쓰기 가능
+    - ReadWriteOnce                        # 하나의 노드에서 읽기/쓰기 가능
   storageClassName: nks-block-storage      # 사용할 StorageClass 이름
   resources:
     requests:
@@ -424,14 +496,6 @@ k apply -f pvc.yaml
 <br />
 
 ### 3) Deployment 생성
-
-<br />
-
-**Deployment**란?
-
-애플리케이션을 몇 개의 Pod로 실행할지, 언제 재시작할지 등을 정의하는 실행 관리 설정입니다.
-
-애플리케이션을 안정적으로 배포하고 운영하기 위한 핵심 구성 요소입니다.
 
 <br />
 
@@ -757,23 +821,32 @@ k get all -n workshop
 <br />
 <br />
 
-## 5. Prometheus + Grafana 생성
+## 5. 모니터링 진행
+
+<br />
+
+**Node Exporter**란?
+
+서버의 상태 정보를 Prometheus가 가져갈 수 있게 만들어주는 프로그램
 
 <br />
 
 **Prometheus**란?
 
-쿠버네티스 클러스터나 애플리케이션의 상태와 지표(Metrics)를 수집하는 모니터링 도구입니다.
+서버나 애플리케이션에서 나오는 정보를 모아서 저장하는 도구
 
 <br />
 
 **Grafana**란?
 
-Prometheus가 수집한 데이터를 그래프나 대시보드로 시각화해 보여주는 도구입니다.
+Prometheus가 수집한 데이터를 그래프나 대시보드로 시각화해 보여주는 도구
 
 <br />
 
 ```bash
+# config 생성
+cp ~/.ncloud/kubeconfig.yaml ~/.kube/config
+
 # helm 설치
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
