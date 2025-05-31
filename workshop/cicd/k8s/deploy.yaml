@@ -15,7 +15,7 @@ spec:
         project_name: workshop
     spec:
       containers:
-      - image: 27.96.145.28:30500/workshop-ehyang-workshop:c496e67-34
+      - image: 27.96.149.23:30500/workshop-ynjeon-workshop:c496e67-1
         imagePullPolicy: Always
         name: test
         volumeMounts:
